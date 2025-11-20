@@ -25,9 +25,5 @@ func (h *handler) InitiateSTK(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	STK := struct {
-		STK []string `json:"stk"`
-	}{}
-
-	json.Write(w, http.StatusOK, STK)
+	json.Write(w, http.StatusOK, "Data")
 }
