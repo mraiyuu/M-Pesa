@@ -1,22 +1,23 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"time"
-	"log"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	mpesaexpress "github.com/mraiyuu/M-Pesa/internal/mpesa_express"
 )
 
 func (app *application) mount() http.Handler {
 	r := chi.NewRouter()
 
 	// A good base middleware stack
-	r.Use(middleware.RequestID) 
-	r.Use(middleware.RealIP)    
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer) 
+	r.Use(middleware.Recoverer)
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
@@ -27,6 +28,9 @@ func (app *application) mount() http.Handler {
 		w.Write([]byte("all good"))
 	})
 
+	mpesaExpressService := mpesaexpress.NewService()
+	mpesExpressHandler := mpesaexpress.NewHandler(mpesaExpressService)
+	r.Get("/initiateMpesaExpress", mpesExpressHandler.InitiateSTK)
 
 	return r
 }
