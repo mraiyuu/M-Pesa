@@ -6,11 +6,17 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/joho/godotenv"
 	"github.com/mraiyuu/M-Pesa/internal/env"
 )
 
 func main() {
 	ctx := context.Background()
+
+	/* load env first */
+	if err := godotenv.Load(); err != nil {
+		slog.Error("warning: failed to load env")
+	}
 
 	cfg := config{
 		addr: ":8000",
@@ -34,7 +40,7 @@ func main() {
 	}
 	defer conn.Close(ctx)
 
-	logger.Info("connected to database", "dsn", cfg.db.dsn)
+	logger.Info("connected to database")
 
 	if err := api.run(api.mount()); err != nil {
 		slog.Error("server has failed to start", "error", err)
