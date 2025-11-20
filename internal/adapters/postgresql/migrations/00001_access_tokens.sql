@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS access_tokens(
     type VARCHAR(20),
     expires_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW (),
-    updated_at TIMESTAMPTZ DEFAULT NOW
+    updated_at TIMESTAMPTZ DEFAULT NOW ()
 );
 -- +goose StatementEnd
 
