@@ -27,7 +27,7 @@ func (app *application) mount() http.Handler {
 
 	mpesaExpressService := mpesaexpress.NewService()
 	mpesExpressHandler := mpesaexpress.NewHandler(mpesaExpressService)
-	r.Get("/initiateMpesaExpress", mpesExpressHandler.InitiateSTK)
+	r.Post("/initiateMpesaExpress", mpesExpressHandler.InitiateMpesaExpress)
 
 	return r
 }
