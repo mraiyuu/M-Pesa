@@ -10,6 +10,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -54,16 +56,16 @@ type STKPayload struct {
 }
 
 func (s *svc) GetAccessToken(ctx context.Context) (*AccessTokenResponse, error) {
-	consumerKey := os.Getenv("CONSUMER_KEY")
-	if consumerKey == "" {
-		return nil, fmt.Errorf("consumer key misisng")
-
+	consumerKey, ok := os.LookupEnv("CONSUMER_KEY")
+	if !ok {
+		return nil, fmt.Errorf("consumer key missing")
 	}
 
-	consumerSecret := os.Getenv("CONSUMER_SECRET")
-	if consumerSecret == "" {
+	consumerSecret, ok := os.LookupEnv("CONSUMER_SECRET")
+	if !ok {
 		return nil, fmt.Errorf("consumer secret missing")
 	}
+
 	URL := "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, URL, nil)
@@ -94,6 +96,15 @@ func (s *svc) GetAccessToken(ctx context.Context) (*AccessTokenResponse, error) 
 }
 
 func (s *svc) InitiateSTK(ctx context.Context, phoneNumber string) (*InitiateSTKResponse, error) {
+	//validate phone number before anything else
+	if phoneNumber != "" {
+		formattedPhone, err := formatPhoneNumber(phoneNumber)
+		if err != nil {
+			return nil, err
+		}
+		phoneNumber = formattedPhone
+	}
+
 	shortCode := os.Getenv("SHORTCODE")
 	if shortCode == "" {
 		return nil, fmt.Errorf("short code missing in env")
@@ -134,7 +145,6 @@ func (s *svc) InitiateSTK(ctx context.Context, phoneNumber string) (*InitiateSTK
 		return nil, fmt.Errorf("failed to get access token %w", err)
 	}
 
-
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, URL, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		return nil, fmt.Errorf("failed to make request %w", err)
@@ -168,4 +178,34 @@ func (s *svc) InitiateSTK(ctx context.Context, phoneNumber string) (*InitiateSTK
 
 	}
 	return &STKResponse, nil
+}
+
+func formatPhoneNumber(phoneNumber string) (string, error) {
+	// Remove any spaces, dashes, or plus signs
+	phoneNumber = strings.TrimSpace(phoneNumber)
+	phoneNumber = strings.ReplaceAll(phoneNumber, " ", "")
+	phoneNumber = strings.ReplaceAll(phoneNumber, "-", "")
+	phoneNumber = strings.ReplaceAll(phoneNumber, "+", "")
+
+	// If it starts with 0, replace with 254
+	if strings.HasPrefix(phoneNumber, "0") {
+		phoneNumber = "254" + phoneNumber[1:]
+	}
+
+	// If it doesn't start with 254, prepend it 
+	if !strings.HasPrefix(phoneNumber, "254") {
+		phoneNumber = "254" + phoneNumber
+	}
+
+	// Validate length (254 + 9 digits = 12 characters)
+	if len(phoneNumber) != 12 {
+		return "", fmt.Errorf("invalid phone number length: %d", len(phoneNumber))
+	}
+
+	// Validate all characters are digits
+	if _, err := strconv.ParseInt(phoneNumber, 10, 64); err != nil {
+		return "", fmt.Errorf("phone number contains non-digit characters")
+	}
+
+	return phoneNumber, nil
 }
