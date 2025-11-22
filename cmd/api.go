@@ -7,7 +7,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	mpesaexpress "github.com/mraiyuu/M-Pesa/internal/mpesa_express"
+	"github.com/mraiyuu/M-Pesa/internal/handlers"
+	"github.com/mraiyuu/M-Pesa/internal/services"
+	// mpesaexpress "github.com/mraiyuu/M-Pesa/internal/mpesa_express"
 )
 
 func (app *application) mount() http.Handler {
@@ -25,8 +27,8 @@ func (app *application) mount() http.Handler {
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	mpesaExpressService := mpesaexpress.NewService()
-	mpesExpressHandler := mpesaexpress.NewHandler(mpesaExpressService)
+	mpesaExpressService := services.NewService()
+	mpesExpressHandler := handlers.NewHandler(mpesaExpressService)
 	r.Post("/initiateMpesaExpress", mpesExpressHandler.InitiateMpesaExpress)
 
 	return r
