@@ -1,22 +1,23 @@
-package mpesaexpress
+package handlers
 
 import (
 	"encoding/json"
 	"log"
 	"net/http"
 
-	"github.com/mraiyuu/M-Pesa/internal/response"
+	"github.com/mraiyuu/M-Pesa/internal/services"
+	"github.com/mraiyuu/M-Pesa/internal/vendor"
 )
 
 type handler struct {
-	service Service
+	service services.Service
 }
 
 type InitiateMpesaExpressBody struct {
 	PhoneNumber string `json:"phone_number"`
 }
 
-func NewHandler(service Service) *handler {
+func NewHandler(service services.Service) *handler {
 	return &handler{
 		service: service,
 	}
@@ -24,7 +25,7 @@ func NewHandler(service Service) *handler {
 
 func (h *handler) InitiateMpesaExpress(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		response.Write(w, http.StatusMethodNotAllowed, "method not allowed")
+		vendor.Write(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
 
@@ -34,7 +35,7 @@ func (h *handler) InitiateMpesaExpress(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&req); err != nil {
-		response.Write(w,http.StatusInternalServerError, "invalid body request",)
+		vendor.Write(w,http.StatusInternalServerError, "invalid body request",)
 		return
 	}
 
@@ -50,5 +51,5 @@ func (h *handler) InitiateMpesaExpress(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Write(w, http.StatusOK, stkPush)
+	vendor.Write(w, http.StatusOK, stkPush)
 }

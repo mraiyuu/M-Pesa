@@ -1,4 +1,4 @@
-package mpesaexpress
+package services
 
 import (
 	"bytes"
